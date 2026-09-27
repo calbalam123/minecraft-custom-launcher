@@ -9,6 +9,9 @@ internal static class Program
     private static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Application.Run(new MainForm());
+        var loading = new LoadingForm();
+        loading.Show();
+        Application.DoEvents();
+        Application.Run(new MainForm(loading));
     }
 }
