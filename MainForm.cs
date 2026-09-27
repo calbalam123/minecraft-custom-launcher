@@ -312,9 +312,15 @@ public sealed class MainForm : Form
         fields.Controls.Add(LabeledField("서버 이름", serverNameBox), 0, 0);
         fields.Controls.Add(LabeledField("포트", serverPortBox), 1, 0);
         fields.Controls.Add(LabeledField("주소", serverAddressBox), 0, 1);
-        fields.Controls.Add(LabeledField("RAM (MB)", ramBox), 1, 1);
+        var ramField = LabeledField("RAM (MB)", ramBox);
+        ramField.Controls.Add(autoRamButton);
+        autoRamButton.Dock = DockStyle.Right;
+        fields.Controls.Add(ramField, 1, 1);
         fields.Controls.Add(LabeledField("플레이어 이름", usernameBox), 0, 2);
-        fields.Controls.Add(LabeledField("Java 경로", javaBox), 1, 2);
+        var javaField = LabeledField("Java 경로", javaBox);
+        javaField.Controls.Add(javaBrowseButton);
+        javaBrowseButton.Dock = DockStyle.Right;
+        fields.Controls.Add(javaField, 1, 2);
 
         autoRamButton.Text = "자동";
         autoRamButton.Width = 52;
