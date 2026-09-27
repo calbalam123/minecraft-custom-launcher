@@ -177,12 +177,7 @@ public sealed class AdvancedToolsForm : Form
             else if (loader == "NeoForge")
             {
                 var installer = new NeoForgeInstaller(launcher);
-                installedVersion = await installer.Install(mcVersion, new NeoForgeInstallOptions
-                {
-                    CancellationToken = cancellation.Token,
-                    SkipIfAlreadyInstalled = true,
-                    InstallerOutput = new Progress<string>(SetStatus)
-                });
+                installedVersion = await installer.Install(mcVersion);
             }
             else
             {
