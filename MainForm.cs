@@ -34,6 +34,7 @@ public sealed class MainForm : Form
     private readonly Button addServerButton = new();
     private readonly Button removeServerButton = new();
     private readonly Button updateButton = new();
+    private readonly Button advancedButton = new();
     private readonly ProgressBar progress = new();
     private readonly Label status = new();
     private readonly Label accountStatus = new();
@@ -42,6 +43,7 @@ public sealed class MainForm : Form
     private JELoginHandler? loginHandler;
     private MSession? microsoftSession;
     private CancellationTokenSource? launchCancellation;
+    private string gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
     private readonly List<ServerEntry> servers = [];
     private readonly string settingsPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -211,6 +213,12 @@ public sealed class MainForm : Form
         cancelButton.Enabled = false;
         cancelButton.Click += (_, _) => launchCancellation?.Cancel();
 
+        advancedButton.Text = "고급 관리";
+        advancedButton.Location = new Point(710, 535);
+        advancedButton.Size = new Size(90, 48);
+        StyleButton(advancedButton);
+        advancedButton.Click += async (_, _) => await OpenAdvancedToolsAsync();
+
         progress.Location = new Point(40, 595);
         progress.Size = new Size(665, 12);
         status.Text = "준비 중...";
@@ -222,7 +230,7 @@ public sealed class MainForm : Form
             title, subtitle, accountStatus, loginButton, logoutButton, updateButton,
             versionBox, refreshButton, profileBox, serverBox, addServerButton, removeServerButton,
             serverNameBox, serverAddressBox, serverPortBox, usernameBox, ramBox, autoRamButton,
-            javaBox, javaBrowseButton, launchButton, cancelButton, progress, status
+            javaBox, javaBrowseButton, launchButton, cancelButton, advancedButton, progress, status
         ]);
     }
 
@@ -256,7 +264,7 @@ public sealed class MainForm : Form
             LoadSettings();
             Directory.CreateDirectory(Path.GetDirectoryName(settingsPath)!);
 
-            launcher = new MinecraftLauncher(new MinecraftPath());
+            launcher = new MinecraftLauncher(new MinecraftPath(gameDirectory));
             loginHandler = JELoginHandlerBuilder.BuildDefault();
 
             await RefreshVersionsAsync();
@@ -533,13 +541,31 @@ public sealed class MainForm : Form
                 launchCancellation.Token);
 
             status.Text = "Minecraft 실행 중...";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+            process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
             process.EnableRaisingEvents = true;
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(e.Data))
+                    LauncherLogger.Write("OUT " + e.Data);
+            };
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrWhiteSpace(e.Data))
+                    LauncherLogger.Write("ERR " + e.Data);
+            };
             process.Exited += (_, _) =>
             {
+                LauncherLogger.Write("Minecraft process exited.");
                 if (!IsDisposed)
                     BeginInvoke(() => status.Text = "Minecraft 종료됨");
             };
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
         }
         catch (OperationCanceledException)
         {
@@ -793,6 +819,8 @@ public sealed class MainForm : Form
             usernameBox.Text = settings.Username ?? "";
             ramBox.Value = Math.Clamp(settings.RamMb, 1024, 32768);
             javaBox.Text = settings.JavaPath ?? "";
+            if (!string.IsNullOrWhiteSpace(settings.GameDirectory) && Directory.Exists(settings.GameDirectory))
+                gameDirectory = settings.GameDirectory;
 
             servers.Clear();
             servers.AddRange(settings.Servers ?? []);
@@ -834,6 +862,7 @@ public sealed class MainForm : Form
             Username = usernameBox.Text.Trim(),
             RamMb = (int)ramBox.Value,
             JavaPath = javaBox.Text.Trim(),
+            GameDirectory = gameDirectory,
             SelectedVersion = versionBox.Text,
             SelectedProfile = profileBox.Text,
             Servers = servers
@@ -859,6 +888,39 @@ public sealed class MainForm : Form
         File.Move(tempPath, settingsPath, true);
     }
 
+    private async Task OpenAdvancedToolsAsync()
+    {
+        if (launcher is null)
+        {
+            MessageBox.Show("런처가 아직 초기화되지 않았습니다.");
+            return;
+        }
+
+        using var form = new AdvancedToolsForm(
+            launcher,
+            gameDirectory,
+            async path =>
+            {
+                await ApplyGameDirectoryAsync(path);
+            });
+
+        form.ShowDialog(this);
+        await RefreshVersionsAsync();
+    }
+
+    private async Task ApplyGameDirectoryAsync(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        Directory.CreateDirectory(path);
+        gameDirectory = path;
+        launcher = new MinecraftLauncher(new MinecraftPath(gameDirectory));
+        SaveSettingsSafely();
+        status.Text = $"게임 폴더: {gameDirectory}";
+        await RefreshVersionsAsync();
+    }
+
     private static string FormatBytes(long bytes)
     {
         if (bytes < 1024) return $"{bytes} B";
@@ -874,6 +936,7 @@ public sealed class MainForm : Form
         public string? JavaPath { get; set; }
         public string? SelectedVersion { get; set; }
         public string? SelectedProfile { get; set; }
+        public string? GameDirectory { get; set; }
         public List<ServerEntry> Servers { get; set; } = [];
     }
 }
