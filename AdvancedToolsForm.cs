@@ -2,6 +2,7 @@ using CmlLib.Core;
 using CmlLib.Core.Installers;
 using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.Installer.NeoForge;
+using CmlLib.Core.Auth;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -12,6 +13,7 @@ public sealed class AdvancedToolsForm : Form
     private readonly MinecraftLauncher launcher;
     private string gameDirectory;
     private readonly Func<string, Task> changeDirectory;
+    private readonly Func<MSession?> getSession;
     private readonly ComboBox loaderBox = new();
     private readonly TextBox versionBox = new();
     private readonly ListBox modList = new();
@@ -20,11 +22,12 @@ public sealed class AdvancedToolsForm : Form
     private readonly ProgressBar progress = new();
     private CancellationTokenSource? cancellation;
 
-    public AdvancedToolsForm(MinecraftLauncher launcher, string gameDirectory, Func<string, Task> changeDirectory)
+    public AdvancedToolsForm(MinecraftLauncher launcher, string gameDirectory, Func<string, Task> changeDirectory, Func<MSession?> getSession)
     {
         this.launcher = launcher;
         this.gameDirectory = gameDirectory;
         this.changeDirectory = changeDirectory;
+        this.getSession = getSession;
         Text = "CALBALAM 고급 관리";
         Width = 760;
         Height = 620;
@@ -64,6 +67,9 @@ public sealed class AdvancedToolsForm : Form
         var install = Button("자동 설치", 355, 200, 110, 32);
         install.Click += async (_, _) => await InstallLoaderAsync();
 
+        var profile = Button("스킨 / 프로필", 595, 200, 110, 32);
+        profile.Click += (_, _) => OpenProfile();
+
         var log = Button("런처 로그", 475, 200, 110, 32);
         log.Click += (_, _) => new LogViewerForm().Show(this);
 
@@ -87,7 +93,7 @@ public sealed class AdvancedToolsForm : Form
         statusLabel.ForeColor = Color.Silver;
         statusLabel.Text = "준비 완료";
 
-        Controls.AddRange([title, directoryLabel, choose, open, loaderBox, versionBox, install, log,
+        Controls.AddRange([title, directoryLabel, choose, open, loaderBox, versionBox, install, profile, log,
             modList, add, remove, refresh, progress, statusLabel]);
     }
 
@@ -111,6 +117,18 @@ public sealed class AdvancedToolsForm : Form
         c.BackColor = Color.FromArgb(35, 35, 42);
         c.ForeColor = Color.White;
         c.Font = new Font("Segoe UI", 10);
+    }
+
+    private void OpenProfile()
+    {
+        var session = getSession();
+        if (session is null || string.IsNullOrWhiteSpace(session.AccessToken))
+        {
+            MessageBox.Show("먼저 Microsoft 계정으로 로그인하세요.", "프로필", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        new ProfileForm(session).Show(this);
     }
 
     private async Task ChooseDirectoryAsync()
