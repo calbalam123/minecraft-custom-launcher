@@ -1,5 +1,6 @@
 using CmlLib.Core.Auth;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 namespace CalbalamLauncher;
@@ -111,10 +112,12 @@ public sealed class ProfileForm : Form
         try
         {
             using var http = CreateClient();
-            using var body = new FormUrlEncodedContent([
-                new KeyValuePair<string, string>("variant", variant.Text),
-                new KeyValuePair<string, string>("url", url)
-            ]);
+            var payload = JsonSerializer.Serialize(new
+            {
+                variant = variant.Text,
+                url
+            });
+            using var body = new StringContent(payload, Encoding.UTF8, "application/json");
             var response = await http.PostAsync("https://api.minecraftservices.com/minecraft/profile/skins", body);
             response.EnsureSuccessStatusCode();
             MessageBox.Show("스킨 적용 완료.");
