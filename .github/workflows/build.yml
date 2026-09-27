@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -20,11 +23,35 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Publish
-        run: dotnet publish MinecraftCustomLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+      - name: Publish single EXE
+        run: >
+          dotnet publish MinecraftCustomLauncher.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -o publish
+
+      - name: Verify single EXE
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem publish -File
+          $exe = Get-ChildItem publish -Filter *.exe -File
+          if ($exe.Count -ne 1) {
+            Write-Error "Expected exactly one EXE, found $($exe.Count)."
+          }
+          if ($files.Count -ne 1) {
+            Write-Error "Expected exactly one file in publish/, found $($files.Count)."
+          }
 
       - name: Upload launcher
         uses: actions/upload-artifact@v4
         with:
           name: CalbalamLauncher-win-x64
-          path: publish/
+          path: publish/CalbalamLauncher.exe
+          if-no-files-found: error
+          retention-days: 30
