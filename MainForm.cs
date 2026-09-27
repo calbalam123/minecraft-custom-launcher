@@ -207,7 +207,7 @@ public sealed class MainForm : Form
         {
             SetAuthUi(false);
             status.Text = "Microsoft 계정 로그인 중...";
-            microsoftSession = await loginHandler.AuthenticateInteractively();
+            microsoftSession = await loginHandler.Authenticate();
             usernameBox.Text = microsoftSession.Username;
             accountStatus.Text = $"계정: {microsoftSession.Username}";
             accountStatus.ForeColor = Color.LightGreen;
