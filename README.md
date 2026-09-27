@@ -98,6 +98,27 @@ Microsoft 인증은 `CmlLib.Core.Auth.Microsoft`를 사용합니다. Windows 환
 
 현재 자동 업데이트는 실행 중인 EXE를 강제로 교체하지 않습니다. 새 EXE를 다운로드하여 실행하는 안전한 방식입니다.
 
+## 고급 관리
+
+`고급 관리`에서 다음 기능을 사용할 수 있습니다.
+
+- Minecraft 게임 디렉터리 변경 및 폴더 열기
+- Fabric / Forge / NeoForge / Quilt 자동 설치
+- 설치 후 필요한 Minecraft 파일 자동 보완
+- `mods` 폴더의 `.jar` 모드 추가 / 삭제 / 새로고침
+- Microsoft 계정의 Minecraft 프로필 조회
+- URL 또는 PNG 파일을 이용한 스킨 적용
+- 스킨 초기화
+- 런처 및 Minecraft stdout/stderr 로그 확인
+
+Forge/NeoForge 설치기는 CmlLib의 전용 installer 패키지를 사용합니다. Fabric/Quilt는 각 로더의 공식 메타데이터에서 프로필을 받아 설치합니다. CmlLib 문서에서도 Forge/Fabric/Quilt 자동 설치 흐름을 별도로 안내합니다. citeturn3search1turn3search4turn3search0
+
+## 주의
+
+- 모드 `.jar`는 사용자가 신뢰하는 출처에서 받아야 합니다. Fabric 문서도 모드 출처와 Minecraft/로더 버전 호환성을 확인하도록 안내합니다. citeturn0search2
+- OptiFine은 CmlLib 공식 코어에 직접 포함된 자동 설치기가 아니라 별도 커뮤니티 installer가 안내되어 있으므로, 이 런처에서는 기존 OptiFine 프로필 실행을 유지합니다. citeturn6search8
+- Forge installer는 공식 다운로드 흐름과 광고 페이지 정책이 있어 자동 설치 후 관련 페이지가 열릴 수 있습니다. citeturn3search4
+
 ## 현재 버전
 
 **1.1.0**
