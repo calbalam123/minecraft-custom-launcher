@@ -8,9 +8,12 @@
     <AssemblyName>CalbalamLauncher</AssemblyName>
     <RootNamespace>CalbalamLauncher</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CmlLib.Core" Version="4.0.6" />
-    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.3.1" />
+    <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.2.2" />
   </ItemGroup>
 </Project>
