@@ -591,7 +591,12 @@ public sealed class MainForm : Form
 
     private void OpenProfile()
     {
-        using var form = new ProfileForm(() => microsoftSession);
+        if (microsoftSession is null)
+        {
+            MessageBox.Show("프로필/스킨 관리를 사용하려면 먼저 Microsoft 계정으로 로그인하세요.");
+            return;
+        }
+        using var form = new ProfileForm(microsoftSession);
         form.ShowDialog(this);
     }
 
@@ -601,6 +606,24 @@ public sealed class MainForm : Form
         selectedServerLabel.Text = serverBox.SelectedItem is ServerEntry server
             ? $"●  {server.Name}  •  {server.Address}:{server.Port}"
             : "●  서버를 선택하지 않음";
+    }
+
+    private static void Style(Control c)
+    {
+        c.BackColor = Color.FromArgb(38, 43, 52);
+        c.ForeColor = Color.White;
+        c.Font = new Font("Segoe UI", 9);
+    }
+
+    private static void StyleButton(Button b, bool accent = false)
+    {
+        b.BackColor = accent ? Color.FromArgb(31, 105, 185) : Color.FromArgb(29, 35, 44);
+        b.ForeColor = Color.White;
+        b.FlatStyle = FlatStyle.Flat;
+        b.FlatAppearance.BorderColor = Color.FromArgb(55, 65, 78);
+        b.FlatAppearance.BorderSize = 1;
+        b.Cursor = Cursors.Hand;
+        b.Font = new Font("Segoe UI", 8, FontStyle.Bold);
     }
 
     private void SetAutoRam()
