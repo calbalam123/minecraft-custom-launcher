@@ -902,7 +902,8 @@ public sealed class MainForm : Form
             async path =>
             {
                 await ApplyGameDirectoryAsync(path);
-            });
+            },
+            () => microsoftSession);
 
         form.ShowDialog(this);
         await RefreshVersionsAsync();
