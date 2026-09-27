@@ -617,7 +617,7 @@ public sealed class MainForm : Form
     private static bool IsValidServerAddress(string address)
     {
         if (string.IsNullOrWhiteSpace(address)) return false;
-        if (address.Contains(' ') || address.Contains('\')) return false;
+        if (address.Contains(' ') || address.Contains('\\')) return false;
         return address.Length <= 253;
     }
 
