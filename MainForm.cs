@@ -69,193 +69,366 @@ public sealed class MainForm : Form
         Shown += async (_, _) => await InitializeLauncherAsync();
     }
 
+    private Panel contentPanel = new();
+    private Panel rightPanel = new();
+    private Label heroTitle = new();
+    private Label heroSubtitle = new();
+
     private void BuildUi()
     {
-        var title = new Label
+        Text = "CALBALAM";
+        ClientSize = new Size(1180, 720);
+        MinimumSize = new Size(1000, 650);
+        BackColor = Color.FromArgb(8, 10, 14);
+        ForeColor = Color.White;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        DoubleBuffered = true;
+
+        Paint += (_, e) =>
+        {
+            using var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
+                ClientRectangle,
+                Color.FromArgb(9, 13, 20),
+                Color.FromArgb(20, 16, 24),
+                135f);
+            e.Graphics.FillRectangle(brush, ClientRectangle);
+
+            using var glow = new SolidBrush(Color.FromArgb(22, 110, 170, 210));
+            e.Graphics.FillEllipse(glow, ClientSize.Width / 2 - 230, ClientSize.Height / 2 - 260, 460, 460);
+        };
+
+        var leftPanel = new Panel
+        {
+            Dock = DockStyle.Left,
+            Width = 255,
+            BackColor = Color.FromArgb(55, 0, 0, 0),
+            Padding = new Padding(28, 30, 20, 25)
+        };
+
+        var logo = new Label
         {
             Text = "CALBALAM",
-            Font = new Font("Segoe UI", 26, FontStyle.Bold),
-            AutoSize = true,
-            Location = new Point(36, 22)
+            Dock = DockStyle.Top,
+            Height = 48,
+            Font = new Font("Segoe UI", 24, FontStyle.Bold),
+            ForeColor = Color.White
         };
-        var subtitle = new Label
+        var logoLine = new Label
         {
-            Text = $"Minecraft Custom Launcher v{CurrentVersion}",
-            ForeColor = Color.Silver,
-            AutoSize = true,
-            Location = new Point(39, 66)
+            Text = "MINECRAFT LAUNCHER",
+            Dock = DockStyle.Top,
+            Height = 28,
+            Font = new Font("Segoe UI", 8, FontStyle.Bold),
+            ForeColor = Color.FromArgb(165, 190, 205)
         };
 
-        accountStatus.Text = "계정: 오프라인";
-        accountStatus.ForeColor = Color.Silver;
-        accountStatus.AutoSize = true;
-        accountStatus.Location = new Point(430, 30);
+        var welcome = new Label
+        {
+            Text = "마인크래프트를\n더 간단하게 시작하세요.",
+            Dock = DockStyle.Top,
+            Height = 90,
+            Font = new Font("Segoe UI", 14, FontStyle.Bold),
+            ForeColor = Color.White,
+            Padding = new Padding(0, 35, 0, 0)
+        };
+
+        var leftInfo = new Label
+        {
+            Text = $"Minecraft Custom Launcher\nVersion {CurrentVersion}\n\n서버 · 모드 · 프로필 · Java\n한 곳에서 관리",
+            Dock = DockStyle.Fill,
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(190, 198, 205),
+            Padding = new Padding(0, 18, 0, 0)
+        };
+
+        leftPanel.Controls.Add(leftInfo);
+        leftPanel.Controls.Add(welcome);
+        leftPanel.Controls.Add(logoLine);
+        leftPanel.Controls.Add(logo);
+
+        var rightPanel = new Panel
+        {
+            Dock = DockStyle.Right,
+            Width = 245,
+            BackColor = Color.FromArgb(42, 0, 0, 0),
+            Padding = new Padding(20, 30, 24, 25)
+        };
+        this.rightPanel = rightPanel;
+
+        var accountTitle = new Label
+        {
+            Text = "ACCOUNT",
+            Dock = DockStyle.Top,
+            Height = 24,
+            Font = new Font("Segoe UI", 8, FontStyle.Bold),
+            ForeColor = Color.FromArgb(150, 170, 185)
+        };
+
+        accountStatus.AutoSize = false;
+        accountStatus.Dock = DockStyle.Top;
+        accountStatus.Height = 40;
+        accountStatus.TextAlign = ContentAlignment.MiddleLeft;
+        accountStatus.Text = "●  오프라인";
+        accountStatus.ForeColor = Color.FromArgb(190, 198, 205);
+        accountStatus.Font = new Font("Segoe UI", 10, FontStyle.Bold);
 
         loginButton.Text = "Microsoft 로그인";
-        loginButton.Location = new Point(430, 55);
-        loginButton.Width = 120;
-        StyleButton(loginButton);
+        loginButton.Dock = DockStyle.Top;
+        loginButton.Height = 40;
+        StyleButton(loginButton, true);
         loginButton.Click += async (_, _) => await LoginAsync();
 
         logoutButton.Text = "로그아웃";
-        logoutButton.Location = new Point(560, 55);
-        logoutButton.Width = 85;
+        logoutButton.Dock = DockStyle.Top;
+        logoutButton.Height = 34;
+        logoutButton.Margin = new Padding(0, 7, 0, 0);
         StyleButton(logoutButton);
         logoutButton.Enabled = false;
         logoutButton.Click += async (_, _) => await LogoutAsync();
 
+        var rightSpacer = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
+
         updateButton.Text = "업데이트 확인";
-        updateButton.Location = new Point(655, 55);
-        updateButton.Width = 115;
+        updateButton.Dock = DockStyle.Bottom;
+        updateButton.Height = 36;
         StyleButton(updateButton);
         updateButton.Click += async (_, _) => await CheckForUpdateAsync(true);
 
-        AddLabel("Minecraft 버전", 40, 105);
-        versionBox.Location = new Point(40, 130);
-        versionBox.Width = 450;
+        advancedButton.Text = "⚙  고급 관리";
+        advancedButton.Dock = DockStyle.Bottom;
+        advancedButton.Height = 40;
+        StyleButton(advancedButton);
+        advancedButton.Margin = new Padding(0, 0, 0, 8);
+        advancedButton.Click += async (_, _) => await OpenAdvancedToolsAsync();
+
+        rightPanel.Controls.Add(updateButton);
+        rightPanel.Controls.Add(advancedButton);
+        rightPanel.Controls.Add(rightSpacer);
+        rightPanel.Controls.Add(logoutButton);
+        rightPanel.Controls.Add(loginButton);
+        rightPanel.Controls.Add(accountStatus);
+        rightPanel.Controls.Add(accountTitle);
+
+        contentPanel = new Panel
+        {
+            Dock = DockStyle.Fill,
+            BackColor = Color.FromArgb(15, 0, 0, 0),
+            Padding = new Padding(55, 34, 55, 30)
+        };
+
+        heroTitle = new Label
+        {
+            Text = "PLAY MINECRAFT",
+            Dock = DockStyle.Top,
+            Height = 45,
+            Font = new Font("Segoe UI", 21, FontStyle.Bold),
+            ForeColor = Color.White
+        };
+        heroSubtitle = new Label
+        {
+            Text = "원하는 버전을 선택하고 바로 서버에 접속하세요.",
+            Dock = DockStyle.Top,
+            Height = 35,
+            Font = new Font("Segoe UI", 9),
+            ForeColor = Color.FromArgb(165, 175, 185)
+        };
+
+        var versionLabel = AddSectionLabel("MINECRAFT VERSION");
+        versionBox.Dock = DockStyle.Top;
+        versionBox.Height = 34;
         versionBox.DropDownStyle = ComboBoxStyle.DropDownList;
         Style(versionBox);
         versionBox.SelectedIndexChanged += (_, _) => SaveSettingsSafely();
 
-        refreshButton.Text = "새로고침";
-        refreshButton.Location = new Point(505, 129);
-        refreshButton.Width = 100;
+        refreshButton.Text = "↻";
+        refreshButton.Width = 40;
+        refreshButton.Height = 34;
+        refreshButton.Dock = DockStyle.Right;
         StyleButton(refreshButton);
         refreshButton.Click += async (_, _) => await RefreshVersionsAsync();
 
-        AddLabel("프로필 / 로더", 40, 175);
-        profileBox.Location = new Point(40, 200);
-        profileBox.Width = 565;
+        var versionRow = new Panel { Dock = DockStyle.Top, Height = 34, BackColor = Color.Transparent };
+        versionRow.Controls.Add(versionBox);
+        versionRow.Controls.Add(refreshButton);
+
+        var profileLabel = AddSectionLabel("PROFILE / LOADER");
+        profileBox.Dock = DockStyle.Top;
+        profileBox.Height = 34;
         profileBox.DropDownStyle = ComboBoxStyle.DropDownList;
         Style(profileBox);
 
-        AddLabel("서버", 40, 245);
-        serverBox.Location = new Point(40, 270);
-        serverBox.Width = 565;
+        var serverLabel = AddSectionLabel("SERVER");
+        serverBox.Dock = DockStyle.Top;
+        serverBox.Height = 34;
         serverBox.DropDownStyle = ComboBoxStyle.DropDownList;
         Style(serverBox);
         serverBox.SelectedIndexChanged += (_, _) => LoadSelectedServer();
 
-        addServerButton.Text = "추가";
-        addServerButton.Location = new Point(615, 269);
-        addServerButton.Width = 65;
+        var serverButtons = new Panel { Dock = DockStyle.Right, Width = 92, BackColor = Color.Transparent };
+        addServerButton.Text = "+";
+        addServerButton.Width = 42;
+        addServerButton.Dock = DockStyle.Left;
         StyleButton(addServerButton);
         addServerButton.Click += (_, _) => AddServer();
-
-        removeServerButton.Text = "삭제";
-        removeServerButton.Location = new Point(690, 269);
-        removeServerButton.Width = 65;
+        removeServerButton.Text = "−";
+        removeServerButton.Width = 42;
+        removeServerButton.Dock = DockStyle.Right;
         StyleButton(removeServerButton);
         removeServerButton.Click += (_, _) => RemoveServer();
 
-        AddLabel("서버 이름", 40, 315);
-        serverNameBox.Location = new Point(40, 340);
-        serverNameBox.Width = 230;
-        Style(serverNameBox);
+        var serverRow = new Panel { Dock = DockStyle.Top, Height = 34, BackColor = Color.Transparent };
+        serverRow.Controls.Add(serverBox);
+        serverRow.Controls.Add(serverButtons);
+        serverButtons.Controls.Add(removeServerButton);
+        serverButtons.Controls.Add(addServerButton);
 
-        AddLabel("주소", 285, 315);
-        serverAddressBox.Location = new Point(285, 340);
-        serverAddressBox.Width = 275;
-        Style(serverAddressBox);
+        var fields = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = 142,
+            ColumnCount = 2,
+            RowCount = 3,
+            BackColor = Color.Transparent
+        };
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 68));
+        fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
+        for (var i = 0; i < 3; i++)
+            fields.RowStyles.Add(new RowStyle(SizeType.Percent, 33.33f));
 
-        AddLabel("포트", 575, 315);
-        serverPortBox.Location = new Point(575, 340);
-        serverPortBox.Width = 85;
+        serverNameBox.Dock = DockStyle.Fill;
+        serverAddressBox.Dock = DockStyle.Fill;
+        serverPortBox.Dock = DockStyle.Fill;
         serverPortBox.Minimum = 1;
         serverPortBox.Maximum = 65535;
         serverPortBox.Value = 25565;
-        Style(serverPortBox);
-
-        AddLabel("플레이어 이름", 40, 390);
-        usernameBox.Location = new Point(40, 415);
-        usernameBox.Width = 620;
-        Style(usernameBox);
-        usernameBox.TextChanged += (_, _) => SaveSettingsSafely();
-
-        AddLabel("RAM (MB)", 40, 460);
-        ramBox.Location = new Point(40, 485);
-        ramBox.Width = 180;
+        usernameBox.Dock = DockStyle.Fill;
+        javaBox.Dock = DockStyle.Fill;
+        ramBox.Dock = DockStyle.Fill;
         ramBox.Minimum = 1024;
         ramBox.Maximum = 32768;
         ramBox.Increment = 512;
         ramBox.Value = 4096;
-        Style(ramBox);
+
+        fields.Controls.Add(LabeledField("서버 이름", serverNameBox), 0, 0);
+        fields.Controls.Add(LabeledField("포트", serverPortBox), 1, 0);
+        fields.Controls.Add(LabeledField("주소", serverAddressBox), 0, 1);
+        fields.Controls.Add(LabeledField("RAM (MB)", ramBox), 1, 1);
+        fields.Controls.Add(LabeledField("플레이어 이름", usernameBox), 0, 2);
+        fields.Controls.Add(LabeledField("Java 경로", javaBox), 1, 2);
 
         autoRamButton.Text = "자동";
-        autoRamButton.Location = new Point(225, 484);
-        autoRamButton.Width = 65;
+        autoRamButton.Width = 52;
+        autoRamButton.Dock = DockStyle.Right;
         StyleButton(autoRamButton);
         autoRamButton.Click += (_, _) => SetAutoRam();
 
-        AddLabel("Java 경로 (선택)", 315, 460);
-        javaBox.Location = new Point(315, 485);
-        javaBox.Width = 315;
-        Style(javaBox);
-
-        javaBrowseButton.Text = "찾기";
-        javaBrowseButton.Location = new Point(640, 484);
-        javaBrowseButton.Width = 65;
+        javaBrowseButton.Text = "...";
+        javaBrowseButton.Width = 40;
+        javaBrowseButton.Dock = DockStyle.Right;
         StyleButton(javaBrowseButton);
         javaBrowseButton.Click += (_, _) => BrowseJava();
 
-        launchButton.Text = "게임 실행";
+        var launchArea = new Panel
+        {
+            Dock = DockStyle.Fill,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 18, 0, 0)
+        };
+
+        launchButton.Text = "▶  게임 실행";
+        launchButton.Dock = DockStyle.Top;
+        launchButton.Height = 54;
         launchButton.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-        launchButton.Location = new Point(40, 535);
-        launchButton.Size = new Size(530, 48);
-        launchButton.BackColor = Color.FromArgb(80, 160, 90);
+        launchButton.BackColor = Color.FromArgb(82, 155, 102);
         launchButton.ForeColor = Color.White;
         launchButton.FlatStyle = FlatStyle.Flat;
+        launchButton.FlatAppearance.BorderSize = 0;
         launchButton.Click += async (_, _) => await LaunchAsync();
 
         cancelButton.Text = "취소";
-        cancelButton.Location = new Point(580, 535);
-        cancelButton.Size = new Size(125, 48);
+        cancelButton.Dock = DockStyle.Right;
+        cancelButton.Width = 80;
         StyleButton(cancelButton);
         cancelButton.Enabled = false;
         cancelButton.Click += (_, _) => launchCancellation?.Cancel();
 
-        advancedButton.Text = "고급 관리";
-        advancedButton.Location = new Point(710, 535);
-        advancedButton.Size = new Size(90, 48);
-        StyleButton(advancedButton);
-        advancedButton.Click += async (_, _) => await OpenAdvancedToolsAsync();
-
-        progress.Location = new Point(40, 595);
-        progress.Size = new Size(665, 12);
+        var launchBottom = new Panel { Dock = DockStyle.Bottom, Height = 45, BackColor = Color.Transparent };
         status.Text = "준비 중...";
-        status.ForeColor = Color.Silver;
-        status.AutoSize = true;
-        status.Location = new Point(40, 615);
+        status.Dock = DockStyle.Fill;
+        status.ForeColor = Color.FromArgb(165, 175, 185);
+        status.TextAlign = ContentAlignment.MiddleLeft;
 
-        Controls.AddRange([
-            title, subtitle, accountStatus, loginButton, logoutButton, updateButton,
-            versionBox, refreshButton, profileBox, serverBox, addServerButton, removeServerButton,
-            serverNameBox, serverAddressBox, serverPortBox, usernameBox, ramBox, autoRamButton,
-            javaBox, javaBrowseButton, launchButton, cancelButton, advancedButton, progress, status
-        ]);
+        progress.Dock = DockStyle.Bottom;
+        progress.Height = 8;
+
+        launchBottom.Controls.Add(status);
+        launchBottom.Controls.Add(cancelButton);
+        launchArea.Controls.Add(progress);
+        launchArea.Controls.Add(launchBottom);
+        launchArea.Controls.Add(launchButton);
+
+        contentPanel.Controls.Add(launchArea);
+        contentPanel.Controls.Add(fields);
+        contentPanel.Controls.Add(serverRow);
+        contentPanel.Controls.Add(serverLabel);
+        contentPanel.Controls.Add(profileBox);
+        contentPanel.Controls.Add(profileLabel);
+        contentPanel.Controls.Add(versionRow);
+        contentPanel.Controls.Add(versionLabel);
+        contentPanel.Controls.Add(heroSubtitle);
+        contentPanel.Controls.Add(heroTitle);
+
+        Controls.Add(contentPanel);
+        Controls.Add(rightPanel);
+        Controls.Add(leftPanel);
     }
 
-    private void AddLabel(string text, int x, int y) => Controls.Add(new Label
+    private Label AddSectionLabel(string text)
     {
-        Text = text,
-        AutoSize = true,
-        Location = new Point(x, y),
-        ForeColor = Color.Silver
-    });
+        var label = new Label
+        {
+            Text = text,
+            Dock = DockStyle.Top,
+            Height = 24,
+            Font = new Font("Segoe UI", 8, FontStyle.Bold),
+            ForeColor = Color.FromArgb(150, 170, 185),
+            Padding = new Padding(0, 8, 0, 0)
+        };
+        return label;
+    }
+
+    private static Panel LabeledField(string label, Control control)
+    {
+        var panel = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(4) };
+        var title = new Label
+        {
+            Text = label,
+            Dock = DockStyle.Top,
+            Height = 20,
+            Font = new Font("Segoe UI", 7, FontStyle.Bold),
+            ForeColor = Color.FromArgb(135, 150, 165)
+        };
+        panel.Controls.Add(control);
+        panel.Controls.Add(title);
+        return panel;
+    }
 
     private static void Style(Control c)
     {
-        c.BackColor = Color.FromArgb(35, 35, 42);
+        c.BackColor = Color.FromArgb(38, 42, 49);
         c.ForeColor = Color.White;
-        c.Font = new Font("Segoe UI", 10);
+        c.Font = new Font("Segoe UI", 9);
     }
 
-    private static void StyleButton(Button b)
+    private static void StyleButton(Button b, bool accent = false)
     {
-        b.BackColor = Color.FromArgb(45, 45, 55);
+        b.BackColor = accent ? Color.FromArgb(48, 91, 125) : Color.FromArgb(32, 36, 43);
         b.ForeColor = Color.White;
         b.FlatStyle = FlatStyle.Flat;
-        b.FlatAppearance.BorderSize = 0;
+        b.FlatAppearance.BorderColor = Color.FromArgb(65, 72, 82);
+        b.FlatAppearance.BorderSize = 1;
+        b.Cursor = Cursors.Hand;
+        b.Font = new Font("Segoe UI", 9, FontStyle.Bold);
     }
 
     private async Task InitializeLauncherAsync()
